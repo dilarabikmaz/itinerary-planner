@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <form id="preferences-form" action="/itinerary" method="POST">
+    <input type="hidden" id="location" name="location" required>
+    
+    <label for="preferences">Preferences:</label>
+    <div id="preferences">
+      <label><input type="checkbox" name="preferences[]" value="restaurant"> Restaurant</label>
+      <label><input type="checkbox" name="preferences[]" value="cafe"> Cafe</label>
+      <label><input type="checkbox" name="preferences[]" value="shopping"> Shopping</label>
+      <label><input type="checkbox" name="preferences[]" value="park"> Park</label>
+      <label><input type="checkbox" name="preferences[]" value="event"> Event</label>
+    </div>
+    
+    <div id="budget-selection" style="display:none;">
+      <label for="budget">Select Budget:</label>
+      <div id="dollar-signs">
+        <span class="dollar" data-value="1">$</span>
+        <span class="dollar" data-value="2">$$</span>
+        <span class="dollar" data-value="3">$$$</span>
+        <span class="dollar" data-value="4">$$$$</span>
+      </div>
+      <input type="hidden" id="budget" name="budget" value="">
+    </div>
+
+      <!-- Search Radius Slider -->
+    <label for="radius">Search Radius (5 to 15 miles):</label>
+    <input type="range" id="radius" name="radius" min="5" max="15" value="10" oninput="this.nextElementSibling.value = this.value">
+    <output>10</output> miles
+
+    <button type="submit">Create Itinerary</button>
+  </form>
+  
+
+  <script>
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        var x = document.getElementById("location");
+        x.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    }
+
+    function showPosition(position) {
+      var latlon = position.coords.latitude + "," + position.coords.longitude;
+      document.getElementById('location').value = latlon;
+
+      $.ajax({
+        type: "GET",
+        url: "https://app.ticketmaster.com/discovery/v2/events.json?apikey=7QWr1kBaO0qojRvnhyEV4UImcgPA8oAP&latlong=" + latlon,
+        async: true,
+        dataType: "json",
+        success: function(json) {
+          console.log(json);
+          var e = document.getElementById("event");
+          if (json._embedded && json._embedded.events && json._embedded.events.length > 0) {
+            var event = json._embedded.events[0];
+            e.innerHTML = "Event found: " + event.name;
+          } else {
+            e.innerHTML = "No events found.";
+          }
+        },
+        error: function(xhr, status, err) {
+          console.log(err);
+        }
+      });
+    }
+
+    function showError(error) {
+      var x = document.getElementById("location");
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          x.innerHTML = "User denied the request for Geolocation.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          x.innerHTML = "Location information is unavailable.";
+          break;
+        case error.TIMEOUT:
+          x.innerHTML = "The request to get user location timed out.";
+          break;
+        case error.UNKNOWN_ERROR:
+          x.innerHTML = "An unknown error occurred.";
+          break;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      getLocation();
+    });
+
+<script>
+  document.querySelectorAll('#preferences input[type="checkbox"]').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+      const budgetSelection = document.getElementById('budget-selection');
+      
+      // Check if the "restaurant" preference is selected
+      const restaurantSelected = document.querySelector('input[name="preferences[]"][value="restaurant"]').checked;
+
+      if (restaurantSelected) {
+        budgetSelection.style.display = 'block'; // Show budget selection
+      } else {
+        budgetSelection.style.display = 'none'; // Hide budget selection
+        document.getElementById('budget').value = ''; // Reset budget value
+        
+        document.querySelectorAll('.dollar').forEach(function(el) {
+          el.classList.remove('selected'); // Deselect all dollar signs
+        });
+      }
+    })
+  });
+
+</script>
+
+    // Handle budget selection
+    document.querySelectorAll('.dollar').forEach(el => {
+      el.addEventListener('mouseover', function() {
+        const value = parseInt(this.getAttribute('data-value'));
+        document.querySelectorAll('.dollar').forEach((el, index) => {
+          el.classList.toggle('hover', index < value);
+        });
+      });
+
+      el.addEventListener('mouseout', function() {
+        document.querySelectorAll('.dollar').forEach(el => el.classList.remove('hover'));
+      });
+
+      el.addEventListener('click', function() {
+        const value = parseInt(this.getAttribute('data-value'));
+        document.getElementById('budget').value = value;
+        document.querySelectorAll('.dollar').forEach((el, index) => {
+          el.classList.toggle('selected', index < value);
+        });
+      });
+    });
+  </script>
+
+  <style>
+    .dollar {
+      cursor: pointer;
+      font-size: 1.5em;
+      color: lightgray;
+    }
+    .dollar.hover,
+    .dollar.selected {
+      color: gold;
+    }
+  </style>
+</body>
+</html>
