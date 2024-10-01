@@ -29,11 +29,9 @@ app.post('/itinerary', async (req, res) => {
 
     for (const preference of selectedPreferences) {
       if (preference === 'event') {
-        // Fetch events using the selected radius
-        places['event'] = await getEvents(location, radius);
+        places['event'] = await getEvents(location);
       } else {
-        // Fetch other places using the selected radius
-        places[preference] = await getNearbyPlace(location, preference, budget, radius);
+        places[preference] = await getNearbyPlace(location, preference);
       }
     }
 
@@ -44,7 +42,7 @@ app.post('/itinerary', async (req, res) => {
   }
 });
 
-async function getEvents(location, radius) {
+async function getEvents(location) {
   const now = new Date();
   const startDateTime = now.toISOString().split('.')[0] + 'Z';
   const endDateTime = new Date(now.setDate(now.getDate() + 1)).toISOString().split('.')[0] + 'Z';
@@ -53,7 +51,7 @@ async function getEvents(location, radius) {
     params: {
       apikey: '7QWr1kBaO0qojRvnhyEV4UImcgPA8oAP',
       latlong: location,
-      radius: radius || 50,  // Default to 10 miles if no radius provided
+      radius: 50,  
       unit: 'miles',
       startDateTime: startDateTime,
       endDateTime: endDateTime
@@ -83,10 +81,10 @@ async function getEvents(location, radius) {
 //     return response.data._embedded ? response.data._embedded.events[0] : null;
 //   }
   
-async function getNearbyPlace(location, type, budget = null, radius = 10) {
+async function getNearbyPlace(location, type) {
   const params = {
     location: location,
-    radius: radius * 1609.34,  // Convert miles to meters for the Google Places API
+    radius: 15 * 1609.34,  // Convert miles to meters for the Google Places API
     type: type,
     key: 'AIzaSyD-EGHLxfwmmjD9ng1VqFIerokP61ku5GA'
   };
@@ -101,23 +99,23 @@ async function getNearbyPlace(location, type, budget = null, radius = 10) {
 }
 
 
-// async function getNearbyPlace(location, type, budget = null) {
-//   const params = {
-//     location: location,
-//     radius: 5000,
-//     type: type,
-//     key: 'AIzaSyD-EGHLxfwmmjD9ng1VqFIerokP61ku5GA'
-//   };
+async function getNearbyPlace(location, type, budget = null) {
+  const params = {
+    location: location,
+    radius: 5000,
+    type: type,
+    key: 'AIzaSyD-EGHLxfwmmjD9ng1VqFIerokP61ku5GA'
+  };
 
-//   if (type === 'restaurant' && budget) {
-//     params.minprice = 0;
-//     params.maxprice = budget - 1;
-//   }
+  if (type === 'restaurant' && budget) {
+    params.minprice = 0;
+    params.maxprice = budget - 1;
+  }
 
-//   const response = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json`, { params });
-//   return response.data.results[0];
-// }
+  const response = await axios.get(`https://maps.googleapis.com/maps/api/place/nearbysearch/json`, { params });
+  return response.data.results[0];
+}
 
-// app.listen(port, () => {
-//   console.log(`Server running at http://localhost:${port}`);
-// });
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});

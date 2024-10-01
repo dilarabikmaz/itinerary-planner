@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/styles.css">
+  <title>Your Itinerary</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Itinerary</h1>
+
+    <div class="itinerary-card">
+      <p><strong>Location:</strong> <%= location %></p>
+      <p><strong>Preferences:</strong> <%= preferences.join(', ') %></p>
+    </div>
+
+    <h2>Nearby Places</h2>
+
+    <% preferences.forEach(preference => { %>
+      <div class="itinerary-card">
+        <h3><%= preference.charAt(0).toUpperCase() + preference.slice(1) %></h3>
+        <% if (places[preference]) { %>
+          <!-- Event Handling -->
+          <% if (preference === 'event') { %>
+            <% const event = places['event']; %>
+            <% if (event && event.dates && event.dates.start && event._embedded && event._embedded.venues) { %>
+              <ul>
+                <p><%= event.name %> on <%= event.dates.start.localDate %> at <%= event._embedded.venues[0].name %></p>
+              </ul>
+            <% } else { %>
+              <p>No events found.</p>
+            <% } %>
+          <% } else { %>
+            <!-- Other Places Handling -->
+            <p><%= places[preference].name %> at <%= places[preference].vicinity %></p>
+          <% } %>
+        <% } else { %>
+          <p>No <%= preference %> found nearby.</p>
+        <% } %>
+      </div>
+    <% }) %>
+    
+    <div style="text-align: center;">
+      <a href="/"><button>Back</button></a>
+    </div>
+  </div>
+</body>
+</html>

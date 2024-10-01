@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/styles.css">
+  <title>Preferences</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Select Your Preferences</h1>
+    
+    <form id="preferences-form" action="/itinerary" method="POST">
+      <input type="hidden" id="location" name="location" required>
+      
+      <label for="preferences">Preferences:</label>
+      <div id="preferences">
+        <label><input type="checkbox" name="preferences[]" value="restaurant"> Restaurant</label>
+        <label><input type="checkbox" name="preferences[]" value="cafe"> Cafe</label>
+        <label><input type="checkbox" name="preferences[]" value="shopping"> Shopping</label>
+        <label><input type="checkbox" name="preferences[]" value="park"> Park</label>
+        <label><input type="checkbox" name="preferences[]" value="event"> Event</label>
+      </div>
+
+      <button type="submit">Create Itinerary</button>
+    </form>
+  </div>
+
+  <script>
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+      } else {
+        var x = document.getElementById("location");
+        x.innerHTML = "Geolocation is not supported by this browser.";
+      }
+    }
+
+    function showPosition(position) {
+      var latlon = position.coords.latitude + "," + position.coords.longitude;
+      document.getElementById('location').value = latlon;
+    }
+
+    function showError(error) {
+      var x = document.getElementById("location");
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          x.innerHTML = "User denied the request for Geolocation.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          x.innerHTML = "Location information is unavailable.";
+          break;
+        case error.TIMEOUT:
+          x.innerHTML = "The request to get user location timed out.";
+          break;
+        case error.UNKNOWN_ERROR:
+          x.innerHTML = "An unknown error occurred.";
+          break;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      getLocation();
+    });
+  </script>
+</body>
+</html>
